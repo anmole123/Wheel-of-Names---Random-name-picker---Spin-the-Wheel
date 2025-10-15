@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin Wheel Tools - Fun & Interactive Spinners</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom CSS */
+        :root {
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --accent: #f59e0b;
+            --light-bg: #f8fafc;
+            --dark-bg: #0f172a;
+            --light-text: #1e293b;
+            --dark-text: #f1f5f9;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .dark body {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+
+        .heading-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 640px) {
+            .wheel-container {
+                width: 300px;
+                height: 300px;
+            }
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            transform: rotate(0deg);
+        }
+
+        .wheel-section {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: bottom right;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 600;
+            overflow: hidden;
+            left: 0;
+            top: 0;
+        }
+
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 40px;
+            background: #ef4444;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            z-index: 5;
+        }
+
+        .result-display {
+            min-height: 100px;
+            transition: all 0.5s;
+        }
+
+        .celebration {
+            animation: celebrate 1s ease-in-out;
+        }
+
+        @keyframes celebrate {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .social-sticky {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+        }
+
+        .cookie-popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            max-width: 90%;
+            width: 500px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .dark .faq-item {
+            border-bottom: 1px solid #334155;
+        }
+
+        .faq-question {
+            cursor: pointer;
+            padding: 1rem 0;
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .faq-answer.open {
+            max-height: 500px;
+        }
+
+        .card-hover {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .card-hover:hover {
+            box-shadow: 0 10px 25px rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Cookie Popup -->
+    <div id="cookiePopup" class="cookie-popup bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hidden">
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h3 class="text-lg font-bold mb-2">Cookie Consent</h3>
+                <p class="text-sm mb-4">We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+            </div>
+            <button id="closeCookie" class="ml-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="flex justify-end space-x-4">
+            <button id="acceptCookie" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Accept</button>
+            <button id="declineCookie" class="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition">Decline</button>
+        </div>
+    </div>
+
+    <!-- Sticky Social Icons -->
+    <div class="social-sticky hidden md:flex flex-col space-y-4">
+        <a href="#" class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition">
+            <i class="fab fa-facebook-f"></i>
+        </a>
+        <a href="#" class="w-10 h-10 bg-pink-600 rounded-full flex items-center justify-center text-white hover:bg-pink-700 transition">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <a href="#" class="w-10 h-10 bg-blue-400 rounded-full flex items-center justify-center text-white hover:bg-blue-500 transition">
+            <i class="fab fa-twitter"></i>
+        </a>
+        <a href="#" class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition">
+            <i class="fab fa-youtube"></i>
+        </a>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md transition-colors duration-300">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-sync-alt text-blue-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold heading-font">SpinWheel Tools</h1>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">Home</a>
+                    <a href="#spin" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">Spin</a>
+                    <a href="#tools" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">Tools</a>
+                    <a href="#faq" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">FAQs</a>
+                    <a href="#contact" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition">Contact</a>
+                </nav>
+                
+                <!-- Theme Toggle -->
+                <div class="flex items-center space-x-4">
+                    <button id="themeToggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:block"></i>
+                    </button>
+                    
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuButton" class="md:hidden p-2 rounded-md bg-gray-200 dark:bg-gray-700">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile Navigation -->
+            <div id="mobileMenu" class="hidden md:hidden mt-4 pb-2">
+                <div class="flex flex-col space-y-3">
+                    <a href="#" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition py-2">Home</a>
+                    <a href="#spin" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition py-2">Spin</a>
+                    <a href="#tools" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition py-2">Tools</a>
+                    <a href="#faq" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition py-2">FAQs</a>
+                    <a href="#contact" class="font-medium hover:text-blue-600 dark:hover:text-blue-400 transition py-2">Contact</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6 heading-font">Spin to Win Amazing Prizes</h2>
+            <p class="text-xl mb-8 max-w-2xl mx-auto">Create custom spin wheels for games, decisions, contests, and more with our easy-to-use tools.</p>
+            <a href="#spin" class="inline-block bg-white text-blue-600 font-bold py-3 px-8 rounded-full shadow-lg hover:bg-gray-100 transition">Try Now</a>
+        </div>
+    </section>
+
+    <!-- Spin Wheel Section -->
+    <section id="spin" class="py-16 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 heading-font">Spin the Wheel</h2>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="md:w-1/2 mb-10 md:mb-0">
+                    <div class="wheel-container">
+                        <div class="pointer"></div>
+                        <div id="wheel" class="wheel">
+                            <!-- Wheel sections will be generated by JavaScript -->
+                        </div>
+                        <div class="wheel-center">
+                            <i class="fas fa-gem text-yellow-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="md:w-1/2 md:pl-12">
+                    <div id="resultDisplay" class="result-display bg-gray-100 dark:bg-gray-700 rounded-lg p-6 mb-6 text-center">
+                        <p class="text-lg">Spin the wheel to see your result!</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap justify-center gap-4 mb-6">
+                        <button id="spinButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition flex items-center">
+                            <i class="fas fa-sync-alt mr-2"></i> Spin Now
+                        </button>
+                        <button id="clearButton" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-full transition flex items-center">
+                            <i class="fas fa-trash mr-2"></i> Clear
+                        </button>
+                        <button id="resetButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full transition flex items-center">
+                            <i class="fas fa-undo mr-2"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-6">
+                        <h3 class="text-xl font-bold mb-4">Customize Your Wheel</h3>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-medium">Add Options (comma separated)</label>
+                            <textarea id="wheelOptions" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800" rows="3">Option 1, Option 2, Option 3, Option 4, Option 5, Option 6</textarea>
+                        </div>
+                        <button id="updateWheel" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded transition">Update Wheel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section id="tools" class="py-16 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 heading-font">Our Spin Wheel Tools</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Tool Card 1 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-random text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Decision Maker</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Can't decide? Let our spin wheel make the choice for you with this easy-to-use tool.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+                
+                <!-- Tool Card 2 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-gamepad text-purple-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Game Spinner</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Perfect for board games or classroom activities. Customize with your own options.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+                
+                <!-- Tool Card 3 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-gift text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Prize Wheel</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Create excitement with our prize wheel. Perfect for contests, giveaways, and events.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+                
+                <!-- Tool Card 4 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-utensils text-yellow-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Food Picker</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Can't decide where to eat? Let our wheel choose a restaurant or meal for you.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+                
+                <!-- Tool Card 5 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-tasks text-red-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Task Randomizer</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Assign tasks randomly with our task randomizer wheel. Great for teams and groups.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+                
+                <!-- Tool Card 6 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden card-hover">
+                    <div class="p-6">
+                        <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-dice text-indigo-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Custom Wheel</h3>
+                        <p class="text-gray-600 dark:text-gray-400 mb-4">Create a completely custom wheel with your own colors, labels, and configurations.</p>
+                        <a href="#" class="text-blue-600 font-medium hover:text-blue-800 dark:hover:text-blue-400 transition">Try Now →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popular Keywords Section -->
+    <section class="py-12 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <h2 class="text-2xl font-bold text-center mb-8 heading-font">Popular Keywords</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <!-- Keywords will be generated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="py-16 bg-gray-100 dark:bg-gray-900 transition-colors duration-300">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 heading-font">Frequently Asked Questions</h2>
+            
+            <div class="max-w-3xl mx-auto">
+                <!-- FAQ Item 1 -->
+                <div class="faq-item">
+                    <div class="faq-question flex justify-between items-center">
+                        <h3 class="text-lg font-medium">How does the spin wheel work?</h3>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="pb-4 text-gray-600 dark:text-gray-400">Our spin wheel uses JavaScript to create a realistic spinning animation. When you click the spin button, the wheel rotates and randomly stops on one of the options. The result is determined by the angle at which the wheel stops.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 2 -->
+                <div class="faq-item">
+                    <div class="faq-question flex justify-between items-center">
+                        <h3 class="text-lg font-medium">Can I customize the wheel options?</h3>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="pb-4 text-gray-600 dark:text-gray-400">Yes, you can fully customize the wheel options. Simply enter your desired options in the text area provided, separated by commas, and click the "Update Wheel" button to apply the changes.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 3 -->
+                <div class="faq-item">
+                    <div class="faq-question flex justify-between items-center">
+                        <h3 class="text-lg font-medium">Is my data stored when I use the wheel?</h3>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="pb-4 text-gray-600 dark:text-gray-400">No, we don't store any of your data. The wheel operates entirely in your browser, and any customizations you make are temporarily stored in your browser's local storage for convenience but are not sent to any server.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 4 -->
+                <div class="faq-item">
+                    <div class="faq-question flex justify-between items-center">
+                        <h3 class="text-lg font-medium">Can I use the spin wheel on mobile devices?</h3>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="pb-4 text-gray-600 dark:text-gray-400">Absolutely! Our spin wheel is fully responsive and works on all devices including smartphones and tablets. The touch interface is optimized for mobile use.</p>
+                    </div>
+                </div>
+                
+                <!-- FAQ Item 5 -->
+                <div class="faq-item">
+                    <div class="faq-question flex justify-between items-center">
+                        <h3 class="text-lg font-medium">Is there a limit to how many options I can add?</h3>
+                        <i class="fas fa-chevron-down transition-transform"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p class="pb-4 text-gray-600 dark:text-gray-400">While there's no strict limit, we recommend keeping the number of options between 2 and 12 for the best visual experience. Too many options can make the wheel sections very small and difficult to read.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <i class="fas fa-sync-alt text-blue-400 text-2xl"></i>
+                        <h3 class="text-xl font-bold heading-font">SpinWheel Tools</h3>
+                    </div>
+                    <p class="text-gray-400">Create amazing spin wheels for games, decisions, and contests with our easy-to-use tools.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Home</a></li>
+                        <li><a href="#spin" class="text-gray-400 hover:text-white transition">Spin Wheel</a></li>
+                        <li><a href="#tools" class="text-gray-400 hover:text-white transition">Tools</a></li>
+                        <li><a href="#faq" class="text-gray-400 hover:text-white transition">FAQs</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Legal</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Disclaimer</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Contact Us</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-envelope text-blue-400"></i>
+                            <span class="text-gray-400">support@spinwheeltools.com</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fas fa-phone text-blue-400"></i>
+                            <span class="text-gray-400">+1 (555) 123-4567</span>
+                        </li>
+                    </ul>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-600 transition">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-pink-600 transition">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center hover:bg-blue-400 transition">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2023 SpinWheel Tools. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('themeToggle');
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const wheel = document.getElementById('wheel');
+        const spinButton = document.getElementById('spinButton');
+        const clearButton = document.getElementById('clearButton');
+        const resetButton = document.getElementById('resetButton');
+        const resultDisplay = document.getElementById('resultDisplay');
+        const wheelOptions = document.getElementById('wheelOptions');
+        const updateWheel = document.getElementById('updateWheel');
+        const cookiePopup = document.getElementById('cookiePopup');
+        const acceptCookie = document.getElementById('acceptCookie');
+        const declineCookie = document.getElementById('declineCookie');
+        const closeCookie = document.getElementById('closeCookie');
+        const faqQuestions = document.querySelectorAll('.faq-question');
+
+        // Initialize wheel options
+        let options = ['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5', 'Option 6'];
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+            updateThemeIcon(savedTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const moonIcon = themeToggle.querySelector('.fa-moon');
+            const sunIcon = themeToggle.querySelector('.fa-sun');
+            
+            if (theme === 'dark') {
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            } else {
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark ? 'dark' : 'light');
+        });
+
+        // Mobile Menu Toggle
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Wheel Creation
+        function createWheel() {
+            wheel.innerHTML = '';
+            const numOptions = options.length;
+            const angle = 360 / numOptions;
+            const colors = [
+                '#3b82f6', '#ef4444', '#10b981', '#f59e0b', 
+                '#8b5cf6', '#06b6d4', '#f97316', '#84cc16'
+            ];
+
+            for (let i = 0; i < numOptions; i++) {
+                const section = document.createElement('div');
+                section.className = 'wheel-section';
+                section.style.transform = `rotate(${i * angle}deg)`;
+                section.style.backgroundColor = colors[i % colors.length];
+                
+                const text = document.createElement('div');
+                text.textContent = options[i];
+                text.style.transform = `rotate(${angle / 2}deg)`;
+                text.style.color = 'white';
+                text.style.fontSize = numOptions <= 6 ? '16px' : '14px';
+                text.style.textShadow = '1px 1px 2px rgba(0,0,0,0.5)';
+                
+                section.appendChild(text);
+                wheel.appendChild(section);
+            }
+        }
+
+        // Spin Wheel Function - FIXED VERSION
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            
+            // Generate random spin (multiple full rotations plus a segment)
+            const segments = options.length;
+            const segmentAngle = 360 / segments;
+            
+            // Choose a random segment
+            const randomSegment = Math.floor(Math.random() * segments);
+            
+            // Calculate the exact angle for the selected segment
+            // The pointer is at the top (0 degrees), so we need to calculate
+            // the rotation that will make the selected segment land at the pointer
+            const targetAngle = 360 - (randomSegment * segmentAngle) - (segmentAngle / 2);
+            
+            // Add multiple full rotations for a more realistic spin
+            const fullRotations = 5;
+            const totalRotation = (fullRotations * 360) + targetAngle;
+            
+            // Apply rotation with easing
+            wheel.style.transform = `rotate(${currentRotation + totalRotation}deg)`;
+            currentRotation += totalRotation;
+            
+            // Normalize currentRotation to prevent extremely large values
+            currentRotation = currentRotation % 360;
+            
+            // Wait for animation to complete
+            setTimeout(() => {
+                const result = options[randomSegment];
+                displayResult(result);
+                isSpinning = false;
+                spinButton.disabled = false;
+            }, 4000);
+        }
+
+        // Display Result with Celebration
+        function displayResult(result) {
+            resultDisplay.innerHTML = `
+                <h3 class="text-2xl font-bold mb-2 text-green-600">Congratulations!</h3>
+                <p class="text-xl mb-4">You won: <span class="font-bold">${result}</span></p>
+                <div class="celebration">
+                    <i class="fas fa-trophy text-yellow-500 text-4xl"></i>
+                </div>
+            `;
+            resultDisplay.classList.add('celebration');
+            
+            // Play celebration sound if available
+            playCelebrationSound();
+            
+            // Remove celebration class after animation
+            setTimeout(() => {
+                resultDisplay.classList.remove('celebration');
+            }, 1000);
+        }
+
+        // Play Celebration Sound
+        function playCelebrationSound() {
+            // Create audio context for sound generation
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                
+                oscillator.start();
+                
+                // Create a simple melody
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                
+                // Fade out
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                console.log("Audio context not supported");
+            }
+        }
+
+        // Clear Result
+        function clearResult() {
+            resultDisplay.innerHTML = '<p class="text-lg">Spin the wheel to see your result!</p>';
+        }
+
+        // Reset Wheel
+        function resetWheel() {
+            wheel.style.transform = 'rotate(0deg)';
+            currentRotation = 0;
+            clearResult();
+        }
+
+        // Update Wheel Options
+        function updateWheelOptions() {
+            const newOptions = wheelOptions.value.split(',').map(opt => opt.trim()).filter(opt => opt !== '');
+            if (newOptions.length > 1) {
+                options = newOptions;
+                createWheel();
+                resetWheel();
+            } else {
+                alert('Please enter at least 2 options separated by commas.');
+            }
+        }
+
+        // Initialize Popular Keywords
+        function initKeywords() {
+            const keywords = [
+                'spin wheel', 'random picker', 'decision maker', 'prize wheel', 
+                'game spinner', 'wheel of fortune', 'random selector', 'choice picker',
+                'luck wheel', 'fortune wheel', 'randomizer', 'selection wheel',
+                'chance wheel', 'random wheel', 'picker wheel', 'selection tool',
+                'random choice', 'decision wheel', 'random pick', 'choice maker',
+                'online spinner', 'digital wheel', 'interactive wheel', 'custom wheel',
+                'wheel game', 'random decision', 'selection tool', 'probability wheel',
+                'digital spinner', 'online randomizer'
+            ];
+            
+            const keywordsContainer = document.querySelector('.grid.grid-cols-2.md\\:grid-cols-3.lg\\:grid-cols-5');
+            keywordsContainer.innerHTML = '';
+            
+            keywords.forEach(keyword => {
+                const keywordElement = document.createElement('div');
+                keywordElement.className = 'bg-gray-100 dark:bg-gray-700 rounded-full px-4 py-2 text-center text-sm hover:bg-blue-100 dark:hover:bg-blue-900 transition cursor-pointer';
+                keywordElement.textContent = keyword;
+                keywordsContainer.appendChild(keywordElement);
+            });
+        }
+
+        // Cookie Popup Management
+        function initCookiePopup() {
+            const cookieAccepted = localStorage.getItem('cookieAccepted');
+            if (!cookieAccepted) {
+                setTimeout(() => {
+                    cookiePopup.classList.remove('hidden');
+                }, 2000);
+            }
+        }
+
+        function acceptCookies() {
+            localStorage.setItem('cookieAccepted', 'true');
+            cookiePopup.classList.add('hidden');
+        }
+
+        function declineCookies() {
+            localStorage.setItem('cookieAccepted', 'false');
+            cookiePopup.classList.add('hidden');
+        }
+
+        // FAQ Accordion
+        function initFAQ() {
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', () => {
+                    const answer = question.nextElementSibling;
+                    const icon = question.querySelector('i');
+                    
+                    // Toggle current answer
+                    answer.classList.toggle('open');
+                    icon.classList.toggle('fa-chevron-down');
+                    icon.classList.toggle('fa-chevron-up');
+                    
+                    // Close other answers
+                    faqQuestions.forEach(otherQuestion => {
+                        if (otherQuestion !== question) {
+                            const otherAnswer = otherQuestion.nextElementSibling;
+                            const otherIcon = otherQuestion.querySelector('i');
+                            otherAnswer.classList.remove('open');
+                            otherIcon.classList.remove('fa-chevron-up');
+                            otherIcon.classList.add('fa-chevron-down');
+                        }
+                    });
+                });
+            });
+        }
+
+        // Event Listeners
+        spinButton.addEventListener('click', spinWheel);
+        clearButton.addEventListener('click', clearResult);
+        resetButton.addEventListener('click', resetWheel);
+        updateWheel.addEventListener('click', updateWheelOptions);
+        acceptCookie.addEventListener('click', acceptCookies);
+        declineCookie.addEventListener('click', declineCookies);
+        closeCookie.addEventListener('click', declineCookies);
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            createWheel();
+            initKeywords();
+            initCookiePopup();
+            initFAQ();
+        });
+    </script>
+</body>
+</html>
